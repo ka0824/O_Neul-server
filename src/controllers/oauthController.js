@@ -1,6 +1,6 @@
-require("dotenv").config();
+import "dotenv/config"
 import axios from "axios";
-import { user } from "../models/index"
+import { user } from "../../models/index"
 import { makeAccessToken, makeRefreshToken } from "../token/token"
 
 module.exports = {
