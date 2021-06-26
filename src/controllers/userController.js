@@ -1,4 +1,4 @@
-import { user } from "../models/index"
+import { user } from "../../models/index"
 import { makeAccessToken,makeRefreshToken, isAuthorized } from "../token/token"
 
 module.exports = {
