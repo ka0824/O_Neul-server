@@ -1,5 +1,5 @@
 
-moudule.exports = {
+module.exports = {
   write: async(req, res) => {
     res.send();
   },

@@ -1,4 +1,5 @@
 import app from "./app.js";
+import sequelize from "sequelize";
 
 const port = 80;
 
