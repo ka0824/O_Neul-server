@@ -1,26 +1,18 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('Emphathy', {
+    await queryInterface.createTable('music', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      diary_id: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: "Diary",
-          key: "id"
-        }
+      path: {
+        type: Sequelize.STRING
       },
-      user_id: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: "User",
-          key: "id"
-        }
+      title: {
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,
@@ -33,6 +25,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('Emphathy');
+    await queryInterface.dropTable('music');
   }
 };

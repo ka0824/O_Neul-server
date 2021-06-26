@@ -14,7 +14,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   genre.init({
-    id: DataTypes.INTEGER,
     genre: DataTypes.STRING
   }, {
     sequelize,
