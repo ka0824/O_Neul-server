@@ -94,7 +94,9 @@ module.exports = {
               accessToken: accessToken},
             message: "Oauth login success!"
         
-            })}
+            })} else {
+              
+            }
     } catch (error) {
       res.status(500).send({ message: "server error!"})
     }
