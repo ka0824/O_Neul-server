@@ -1,8 +1,10 @@
+import { async } from "regenerator-runtime";
 import { user } from "../../models/index"
-import { makeAccessToken,makeRefreshToken, isAuthorized } from "../token/token"
+import { makeAccessToken,makeRefreshToken, isAuthorized, renewAccessToken } from "../token/token"
 
 module.exports = {
   signIn: async(req, res) => {
+   
     const { email, password } = req.body
     try {
       const isValid = await user.findOne({
@@ -18,7 +20,7 @@ module.exports = {
         delete data.password;
         const accessToken = makeAccessToken(data);
         const refreshToken = makeRefreshToken(data);
-        res.status(200).send({
+        res.status(200).setHeader("refreshToken", refreshToken).send({
           data: {
             user: data.nickname,
             accessToken: accessToken
@@ -48,7 +50,7 @@ module.exports = {
       } else if (isExistedNickname) {
         res.status(409).send({ message: "nickname already existed!"});
       } else {
-        await user.create({
+        const ex = await user.create({
           email: email,
           password: password,
           nickname: nickname
@@ -93,6 +95,26 @@ module.exports = {
       
     } catch (error) {
       res.status(500).send({ message: "sever error!"})
+    }
+  },
+  renew: async (req, res) => {
+    try {
+      const isValidRefreshToken = renewAccessToken(req);
+      if (isValidRefreshToken === null) {
+        res.status(401).send({ message: "You have to login" })
+      } else {
+        const data = {
+          email: isValidRefreshToken.email,
+          nickname: isValidRefreshToken.nickname
+        }
+        const accessToken = makeAccessToken(data);
+
+        res.status(200).send({data: {accessToken: accessToken}, message: "get new access token success!"})
+
+      }
+      
+    } catch (error) {
+      res.status(500).send( { message: "server error!" })
     }
   }
 }

@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      models.emphathy.belongsTo(models.diary, { foreignKey: 'diaryId', sourceKey: 'id' });
+      models.emphathy.belongsTo(models.user, { foreignKey: 'diaryId', sourceKey: 'id' });
     }
   };
   emphathy.init({

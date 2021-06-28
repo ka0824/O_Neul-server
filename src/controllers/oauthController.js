@@ -38,14 +38,14 @@ module.exports = {
             email: naverData.email
           },
           defaults: {
-            nickname: naverData.nickname,
+            nickname: "naver_" + naverData.nickname,
             password: naverToken
           }
         })
 
         const data = {
           email: naverData.email,
-          nickname: naverData.nickname
+          nickname: "naver_" + naverData.nickname
         }
       
         const accessToken = makeAccessToken(data);
@@ -53,7 +53,7 @@ module.exports = {
 
         res.status(200).send({
           data: { 
-            user: naverData.email, 
+            user: "naver_" + naverData.nickname, 
             accessToken: accessToken},
           message: "Oauth login success!"
         })
@@ -72,7 +72,7 @@ module.exports = {
         
           await user.findOrCreate({
             where: {
-              nickname: kakaoData
+              nickname: "kakao_" + kakaoData
             },
             defaults: {
               email: 'kakaoLogin',
@@ -82,7 +82,7 @@ module.exports = {
   
           const data = {
             email: 'kakaoLogin',
-            nickname: kakaoData
+            nickname: "kakao_" + kakaoData
           }
           console.log('hi');
           const accessToken = makeAccessToken(data);
@@ -90,7 +90,7 @@ module.exports = {
   
           res.status(200).send({
             data: { 
-              user: kakaoData, 
+              user: "kakao_" + kakaoData, 
               accessToken: accessToken},
             message: "Oauth login success!"
         
