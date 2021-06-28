@@ -92,7 +92,7 @@ module.exports = {
 
       const emphathyArray = [];
 
-      Figure.findAll({
+      emphathy.findAll({
         include: [
            {
              model: user,
