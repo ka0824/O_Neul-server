@@ -18,5 +18,16 @@ module.exports = {
     } catch (error) {
       return null;
     }
+  },
+  renewAccessToken: (req) => {
+    const refreshAuthorization = req.headers["refreshauthorization"];
+    if (!refreshAuthorization) {
+      return null;
+    }
+    try {
+      return verify(refreshAuthorization, process.env.REFRESH_SECRET);
+    } catch (error) {
+      return null;
+    }
   }
 }

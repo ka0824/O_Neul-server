@@ -23,7 +23,7 @@ module.exports = {
       text: {
         type: Sequelize.STRING
       },
-      public: {
+      isPublic: {
         type: Sequelize.INTEGER
       },
       createdAt: {

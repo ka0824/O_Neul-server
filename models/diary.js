@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      models.diary.hasMany(models.emphathy, { foreignKey: 'diaryId', sourceKey: 'id' })
+      models.diary.belongsTo(models.music, { foreignKey: 'musicId', sourceKey: 'id' });
     }
   };
   diary.init({
@@ -19,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     weather: DataTypes.INTEGER,
     image: DataTypes.STRING,
     text: DataTypes.STRING,
-    public: DataTypes.INTEGER
+    isPublic: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'diary',

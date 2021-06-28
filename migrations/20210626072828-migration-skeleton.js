@@ -54,14 +54,14 @@ module.exports = {
 
     await queryInterface.createTable('hashtags_diary', {
       
-      post_id: {
+      postId: {
         type: Sequelize.INTEGER,
         references: {
           model: 'diaries',
           key: 'id'
         }
       },
-      hashtag_id: {
+      hashtagId: {
         type: Sequelize.INTEGER,
         references: {
           model: 'hashtags',
