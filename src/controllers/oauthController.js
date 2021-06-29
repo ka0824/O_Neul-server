@@ -4,20 +4,28 @@ import { user } from "../../models/index"
 import { makeAccessToken, makeRefreshToken } from "../token/token"
 
 module.exports = {
-  loginNaver: async (req, res) => {
-    const state = "naver";
+  getCode: async (req, res) => {
+    const { siteName } = req. body
+    try {
+      if(siteName === "naver") {
+        const state = "naver";
+        const naverLoginUrl = 'https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=' + process.env.NAVER_CLIENTID + '&redirect_uri=' + process.env.REDIRECTURL + '&state=' + state;
+        res.send(naverLoginUrl);
+
+      } else if (siteName === "kakao") {
+        const state = "kakao";
+        const kakaoLoginUrl = 'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=' + process.env.KAKAO_RESTAPI + '&redirect_uri=' + process.env.REDIRECTURL + '&state=' + state;
+        res.send(kakaoLoginUrl);
+
+      } else if (siteName === "google") {
+        const state = "google";
+        const googleLoginurl = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=' + process.env.GOOGLE_CLIENTID + '&redirect_uri=' + process.env.REDIRECTURL + '&state=' + state + '&scope=email%20profile'
+        res.send(googleLoginurl);
+      }
+    } catch (err) {
+      res.status(500).send({ message: "server error!" })
+    }
     
-    const naverLoginUrl = 'https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=' + process.env.NAVER_CLIENTID + '&redirect_uri=' + process.env.REDIRECTURL + '&state=' + state;
-    res.send(naverLoginUrl);
-    
-  },
-  loginKakao: async (req, res) => {
-    const state = "kakao";
-    const kakaoLoginUrl = 'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=' + process.env.KAKAO_RESTAPI + '&redirect_uri=' + process.env.REDIRECTURL + '&state=' + state;
-    res.send(kakaoLoginUrl);
-  },
-  loginGoogle: async (req, res) => {
-    res.send();
   },
   loginCallback: async (req, res) => {
     try {
@@ -84,7 +92,6 @@ module.exports = {
             email: 'kakaoLogin',
             nickname: "kakao_" + kakaoData
           }
-          console.log('hi');
           const accessToken = makeAccessToken(data);
           const refreshToken = makeRefreshToken(data);
   
@@ -96,6 +103,53 @@ module.exports = {
         
             })} else {
               
+              const googleTokenUrl = 'https://accounts.google.com/o/oauth2/token?grant_type=authorization_code&client_id=' + process.env.GOOGLE_CLIENTID + '&redirect_uri=' + process.env.REDIRECTURL + '&client_secret=' + process.env.GOOGLE_SECRET + '&code=' + code;
+              const googleToken = await axios.post(googleTokenUrl)
+                .then(res => {return res.data});
+              
+              const header = "Bearer " + googleToken.access_token; 
+ 
+              const googleData = await axios.get("https://oauth2.googleapis.com/tokeninfo",
+                {
+                  params: { id_token: googleToken.id_token },
+                  headers: {'Authorization': header}
+                })
+                  .then(res => {return res.data.email});
+              
+                  
+              const newGoogleUser = await user.findOrCreate({
+                where: {
+                  email: googleData
+                },
+                defaults: {
+                  nickname: null,
+                  password: googleToken.access_token
+                }
+              })
+
+              await user.update({
+                nickname: "google_" + newGoogleUser[0].dataValues.id
+              }, {
+                where: {
+                  email: googleData
+                }
+              })
+ 
+              const data = {
+                email: googleData,
+                nickname: "google_" + newGoogleUser[0].dataValues.id,
+              }
+            
+              const accessToken = makeAccessToken(data);
+              const refreshToken = makeRefreshToken(data);
+              
+              res.status(200).send({
+                data: {
+                  user: data.nickname,
+                  accessToken: accessToken
+                },
+                message: "Oauth login success!"
+              }); 
             }
     } catch (error) {
       res.status(500).send({ message: "server error!"})
