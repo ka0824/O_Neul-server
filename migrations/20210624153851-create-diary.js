@@ -12,10 +12,10 @@ module.exports = {
         type: Sequelize.STRING
       },
       feeling: {
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING
       },
       weather: {
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING
       },
       image: {
         type: Sequelize.STRING
@@ -24,7 +24,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       isPublic: {
-        type: Sequelize.INTEGER
+        type: Sequelize.BOOLEAN
       },
       createdAt: {
         allowNull: false,

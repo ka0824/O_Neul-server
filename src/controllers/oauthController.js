@@ -59,7 +59,7 @@ module.exports = {
         const accessToken = makeAccessToken(data);
         const refreshToken = makeRefreshToken(data);
 
-        res.status(200).send({
+        res.status(200).setHeader("authorization", refreshToken).send({
           data: { 
             user: "naver_" + naverData.nickname, 
             accessToken: accessToken},
@@ -95,7 +95,7 @@ module.exports = {
           const accessToken = makeAccessToken(data);
           const refreshToken = makeRefreshToken(data);
   
-          res.status(200).send({
+          res.status(200).setHeader("authorization", refreshToken).send({
             data: { 
               user: "kakao_" + kakaoData, 
               accessToken: accessToken},
@@ -143,7 +143,7 @@ module.exports = {
               const accessToken = makeAccessToken(data);
               const refreshToken = makeRefreshToken(data);
               
-              res.status(200).send({
+              res.status(200).setHeader("authorization", refreshToken).send({
                 data: {
                   user: data.nickname,
                   accessToken: accessToken

@@ -7,5 +7,6 @@ userRouter.post("/signin", userController.signIn);
 userRouter.post("/signUp", userController.signUp);
 userRouter.patch("/edit", userController.edit);
 userRouter.get("/renew", userController.renew)
+userRouter.post("/getUserInfo", userController.getUserInfo)
 
 export default userRouter;

@@ -20,7 +20,7 @@ module.exports = {
         delete data.password;
         const accessToken = makeAccessToken(data);
         const refreshToken = makeRefreshToken(data);
-        res.status(200).setHeader("refreshToken", refreshToken).send({
+        res.status(200).setHeader("authorization", refreshToken).send({
           data: {
             user: data.nickname,
             accessToken: accessToken
@@ -113,6 +113,25 @@ module.exports = {
 
       }
       
+    } catch (error) {
+      res.status(500).send( { message: "server error!" })
+    }
+  },
+  getUserInfo: async (req, res) => {
+    try {
+      const decodedToken = isAuthorized(req);
+      if (!decodedToken) {
+        res.status(401).send( {message: "You have to signIn" });
+      } else {
+        res.status(200).send( {
+          data: {
+            email: decodedToken.email,
+            nickname: decodedToken.nickname,
+            picture: "https://d2u3dcdbebyaiu.cloudfront.net/uploads/atch_img/436/8142f53e51d2ec31bc0fa4bec241a919_crop.jpeg"
+          },
+          message: "getUserInfo success!"
+        })
+      }
     } catch (error) {
       res.status(500).send( { message: "server error!" })
     }

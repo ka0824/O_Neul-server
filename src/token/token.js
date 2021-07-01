@@ -9,7 +9,7 @@ module.exports = {
     return sign(data, process.env.REFRESH_SECRET, { expiresIn: "30d"});
   },
   isAuthorized: (req) => {
-    const authorization = req.headers["authorization"];
+    const authorization = req.body.accessToken;
     if (!authorization) {
       return null;
     }
@@ -20,12 +20,12 @@ module.exports = {
     }
   },
   renewAccessToken: (req) => {
-    const refreshAuthorization = req.headers["refreshauthorization"];
-    if (!refreshAuthorization) {
+    const authorization = req.headers["authorizaion"];
+    if (!authorization) {
       return null;
     }
     try {
-      return verify(refreshAuthorization, process.env.REFRESH_SECRET);
+      return verify(authorization, process.env.REFRESH_SECRET);
     } catch (error) {
       return null;
     }
