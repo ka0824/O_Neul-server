@@ -1,30 +1,24 @@
-import { async } from "regenerator-runtime";
 import { user } from "../../models/index"
 import { makeAccessToken,makeRefreshToken, isAuthorized, renewAccessToken } from "../token/token"
+import bcrypt from "bcrypt";
 
 module.exports = {
   signIn: async(req, res) => {
    
     const { email, password } = req.body
     try {
-      const isValid = await user.findOne({
-        where: {
-          email: email,
-          password: password
-        }
-      });
+      const isValid = await user.findOne({ where: { email, password } });
       if (!isValid) {
         res.status(401).send({ message: "invalid email or password!"})
       } else {
-        const data = isValid.dataValues;
-        delete data.password;
-        const accessToken = makeAccessToken(data);
-        const refreshToken = makeRefreshToken(data);
+        const allData = isValid.dataValues;
+        const { id, password, createdAt, updatedAt, ...someData } = allData
+
+        const accessToken = makeAccessToken(someData);
+        const refreshToken = makeRefreshToken(someData);
+
         res.status(200).setHeader("authorization", refreshToken).send({
-          data: {
-            user: data.nickname,
-            accessToken: accessToken
-          },
+          data: { ...someData, accessToken },
           message: "signIn success!"
         })
       }
@@ -35,50 +29,36 @@ module.exports = {
   signUp: async(req, res) => {
     const { email, password ,nickname } = req.body
     try {
-      const isExistedEmail = await user.findOne({
-        where: {
-          email: email
-        }
-      });
-      const isExistedNickname = await user.findOne({
-        where: {
-          nickname: nickname
-        }
-      });
+      const isExistedEmail = await user.findOne({ where: { email } });
+      const isExistedNickname = await user.findOne({ where: { nickname: nickname } });
       if (isExistedEmail) {
         res.status(409).send({ message: "email already existed!"});
       } else if (isExistedNickname) {
         res.status(409).send({ message: "nickname already existed!"});
       } else {
-        const ex = await user.create({
-          email: email,
-          password: password,
-          nickname: nickname
-        })
-        res.status(201).send({
-          data: {
-            email: email,
-            nickname: nickname
-          },
-          message: "signUp success!"
-        })
+        const data = await user.create({
+          email,
+          password,
+          nickname,
+          picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
+        }).then(res => { return res.dataValues });
+       
+        ['id', 'password', 'createdAt', 'updatedAt'].map(field => { delete data[field] });
+        
+        res.status(201).send({ data: { user: data }, message: "signUp success!" });
       }
     } catch (error) {
-      res.status(500).send({message: "server error!"})
+      res.status(500).send({message: "server error!"});
     }
   },
   edit: async(req, res) => {
     const decodedToken = isAuthorized(req);
     const { password, nickname } = req.body;
     try {
-      const isExisted = await user.findOne({
-        where: { 
-          nickname: nickname
-        }  
-      });
+      const isExisted = await user.findOne({ where: { nickname: nickname } });
       
       if (!isExisted) {
-        await user.update({ password: password, nickname: nickname}, {
+        await user.update({ password, nickname}, {
           where: { email: decodedToken.email }
         });
         res.status(201).send({ message: "edit userInfo success!" });
@@ -86,13 +66,15 @@ module.exports = {
         if (isExisted.dataValues.email !== decodedToken.email) {
           res.status(409).send({ message: "nickname already existed"})
         } else {
-          await user.update({ password: password, nickname: nickname}, {
+          await user.update({ password, nickname}, {
             where: { email: decodedToken.email }
+            });
+          res.status(201).send({ 
+            data: { user: { nickname: nickname } },
+            message: "edit userInfo success!" 
           });
-          res.status(201).send({ message: "edit userInfo success!" });
         }
-      }
-      
+      }     
     } catch (error) {
       res.status(500).send({ message: "sever error!"})
     }
@@ -105,14 +87,16 @@ module.exports = {
       } else {
         const data = {
           email: isValidRefreshToken.email,
-          nickname: isValidRefreshToken.nickname
+          nickname: isValidRefreshToken.nickname,
+          picture: isValidRefreshToken.picture
         }
         const accessToken = makeAccessToken(data);
 
-        res.status(200).send({data: {accessToken: accessToken}, message: "get new access token success!"})
-
-      }
-      
+        res.status(200).send({
+          data: {accessToken}, 
+          message: "get new access token success!"
+        })
+      }      
     } catch (error) {
       res.status(500).send( { message: "server error!" })
     }
@@ -125,9 +109,11 @@ module.exports = {
       } else {
         res.status(200).send( {
           data: {
-            email: decodedToken.email,
-            nickname: decodedToken.nickname,
-            picture: "https://d2u3dcdbebyaiu.cloudfront.net/uploads/atch_img/436/8142f53e51d2ec31bc0fa4bec241a919_crop.jpeg"
+            user: {
+              email: decodedToken.email,
+              nickname: decodedToken.nickname,
+              picture: decodedToken.picture
+            }            
           },
           message: "getUserInfo success!"
         })

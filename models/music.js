@@ -16,12 +16,15 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   music.init({
-    path: DataTypes.STRING,
-    title: DataTypes.STRING,
-    duration: DataTypes.STRING
+    audio: DataTypes.STRING,
+    name: DataTypes.STRING,
+    duration: DataTypes.STRING,
+    author: DataTypes.STRING,
+    img: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'music',
+    timestamps: false
   });
   return music;
 };

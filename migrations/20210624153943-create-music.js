@@ -8,23 +8,23 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      path: {
+      audio: {
         type: Sequelize.STRING
       },
-      title: {
+      name: {
         type: Sequelize.STRING
       },
       duration: {
         type: Sequelize.STRING
       },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE
+      author: {
+        type: Sequelize.STRING
       },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      }
+      img: {
+        type: Sequelize.STRING
+      },
+    }, {
+      timestamps: false,
     });
   },
   down: async (queryInterface, Sequelize) => {

@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       models.emphathy.belongsTo(models.diary, { foreignKey: 'diaryId', sourceKey: 'id' });
-      models.emphathy.belongsTo(models.user, { foreignKey: 'diaryId', sourceKey: 'id' });
+      models.emphathy.belongsTo(models.user, { foreignKey: 'userId', sourceKey: 'id' });
     }
   };
   emphathy.init({
@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'emphathy',
+    timestamps: false
   });
   return emphathy;
 };

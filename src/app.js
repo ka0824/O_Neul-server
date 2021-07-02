@@ -1,11 +1,7 @@
-import express from "express";
+import express, { Router } from "express";
 import cors from "cors";
 import session from "express-session";
-import diarysRouter from "./routers/diarysRouter";
-import userRouter from "./routers/userRouter";
-import emphathyRouter from "./routers/emphathyRouter";
-import postRouter from "./routers/postRouter";
-import oauthRouter from "./routers/oauthRouter";
+import RouterList from "./routers/RouterList"
 import "dotenv/config"
 
 const app = express();
@@ -37,10 +33,11 @@ app.use(express.json());
 
 app.get("/", (req, res) => res.send("Hello World!"))
 
-app.use("/oauth", oauthRouter);
-app.use("/diarys", diarysRouter);
-app.use("/user", userRouter);
-app.use("/emphathy", emphathyRouter);
-app.use("/post", postRouter);
+app.use("/oauth", RouterList.oauthRouter);
+app.use("/diarys", RouterList.diarysRouter);
+app.use("/user", RouterList.userRouter);
+app.use("/emphathy", RouterList.emphathyRouter);
+app.use("/post", RouterList.postRouter);
+app.use("/music", RouterList.musicRouter);
 
 export default app;

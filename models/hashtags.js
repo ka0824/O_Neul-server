@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'hashtags',
+    timestamps: false
   });
   return hashtags;
 };

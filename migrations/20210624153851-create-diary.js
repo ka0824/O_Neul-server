@@ -12,10 +12,10 @@ module.exports = {
         type: Sequelize.STRING
       },
       feeling: {
-        type: Sequelize.STRING
+        type: Sequelize.INTEGER
       },
       weather: {
-        type: Sequelize.STRING
+        type: Sequelize.INTEGER
       },
       image: {
         type: Sequelize.STRING
@@ -26,15 +26,9 @@ module.exports = {
       isPublic: {
         type: Sequelize.BOOLEAN
       },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      }
-    });
+    }, {
+      timestamps: false,
+    },);
   },
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('diaries');

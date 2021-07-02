@@ -9,17 +9,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      }    
+    }, {
+      timestamps: false,
     });
   },
-
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('emphathies');
   }

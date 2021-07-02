@@ -27,7 +27,7 @@ module.exports = {
     }
     
   },
-  loginCallback: async (req, res) => {
+  login: async (req, res) => {
     try {
       const { code, state } = req.body;
       if (state === "naver") {
@@ -47,13 +47,15 @@ module.exports = {
           },
           defaults: {
             nickname: "naver_" + naverData.nickname,
-            password: naverToken
+            password: naverToken,
+            picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
           }
         })
 
         const data = {
           email: naverData.email,
-          nickname: "naver_" + naverData.nickname
+          nickname: "naver_" + naverData.nickname,
+          picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
         }
       
         const accessToken = makeAccessToken(data);
@@ -61,8 +63,12 @@ module.exports = {
 
         res.status(200).setHeader("authorization", refreshToken).send({
           data: { 
-            user: "naver_" + naverData.nickname, 
-            accessToken: accessToken},
+            user: {
+              nickname: data.email,
+              picture: data.picture
+            }, 
+            accessToken: accessToken
+          },
           message: "Oauth login success!"
         })
       } else if (state === "kakao") {
@@ -83,22 +89,28 @@ module.exports = {
               nickname: "kakao_" + kakaoData
             },
             defaults: {
-              email: 'kakaoLogin',
-              password: kakaoToken
+              email: "kakaoLogin",
+              password: kakaoToken,
+              picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
             }
           })
   
           const data = {
-            email: 'kakaoLogin',
-            nickname: "kakao_" + kakaoData
+            email: "kakaoLogin",
+            nickname: "kakao_" + kakaoData,
+            picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
           }
           const accessToken = makeAccessToken(data);
           const refreshToken = makeRefreshToken(data);
   
           res.status(200).setHeader("authorization", refreshToken).send({
             data: { 
-              user: "kakao_" + kakaoData, 
-              accessToken: accessToken},
+              user: {
+                nickname: data.nickname,
+                picture: data.picture
+              }, 
+              accessToken: accessToken
+              },
             message: "Oauth login success!"
         
             })} else {
@@ -123,7 +135,8 @@ module.exports = {
                 },
                 defaults: {
                   nickname: null,
-                  password: googleToken.access_token
+                  password: googleToken.access_token,
+                  picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
                 }
               })
 
@@ -138,6 +151,7 @@ module.exports = {
               const data = {
                 email: googleData,
                 nickname: "google_" + newGoogleUser[0].dataValues.id,
+                picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
               }
             
               const accessToken = makeAccessToken(data);
@@ -145,7 +159,10 @@ module.exports = {
               
               res.status(200).setHeader("authorization", refreshToken).send({
                 data: {
-                  user: data.nickname,
+                  user: {
+                    nickname: data.nickname,
+                    picture: data.picture
+                  },
                   accessToken: accessToken
                 },
                 message: "Oauth login success!"

@@ -5,6 +5,6 @@ const oauthRouter = express.Router();
 
 oauthRouter.post("/getCode", oauthController.getCode);
 
-oauthRouter.post("/login", oauthController.loginCallback);
+oauthRouter.post("/login", oauthController.login);
 
 export default oauthRouter;

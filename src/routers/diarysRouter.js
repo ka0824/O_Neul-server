@@ -3,6 +3,6 @@ import diarysController from "../controllers/diarysController";
 
 const diarysRouter = express.Router();
 
-diarysRouter.get("/", diarysController.getDiarys);
+diarysRouter.post("/", diarysController.getDiarys);
 
 export default diarysRouter;

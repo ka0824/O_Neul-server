@@ -16,14 +16,15 @@ module.exports = (sequelize, DataTypes) => {
   };
   diary.init({
     date: DataTypes.STRING,
-    feeling: DataTypes.STRING,
-    weather: DataTypes.STRING,
+    feeling: DataTypes.INTEGER,
+    weather: DataTypes.INTEGER,
     image: DataTypes.STRING,
     text: DataTypes.STRING,
-    isPublic: DataTypes.BOOLEAN
+    isPublic: DataTypes.BOOLEAN,
   }, {
     sequelize,
     modelName: 'diary',
+    timestamps: false
   });
   return diary;
 };
