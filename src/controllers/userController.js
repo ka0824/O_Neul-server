@@ -17,7 +17,9 @@ module.exports = {
         const accessToken = makeAccessToken(someData);
         const refreshToken = makeRefreshToken(someData);
 
-        res.status(200).setHeader("authorization", refreshToken).send({
+        res.cookie("refreshToken", refreshToken, { httpOnly: true });
+         
+        res.status(200).send({
           data: { ...someData, accessToken },
           message: "signIn success!"
         })

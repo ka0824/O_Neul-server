@@ -9,8 +9,6 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-    }, {
-      timestamps: false,
     });
   },
   down: async (queryInterface, Sequelize) => {

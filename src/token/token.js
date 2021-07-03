@@ -9,7 +9,7 @@ module.exports = {
     return sign(data, process.env.REFRESH_SECRET, { expiresIn: "30d"});
   },
   isAuthorized: (req) => {
-    const authorization = req.body.accessToken;
+    const authorization = req.headers["authorization"];
     if (!authorization) {
       return null;
     }

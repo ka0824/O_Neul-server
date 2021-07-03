@@ -20,8 +20,6 @@ module.exports = {
       picture: {
         type: Sequelize.STRING
       },
-    }, {
-      timestamps: false,
     });
     
   },

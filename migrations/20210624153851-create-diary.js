@@ -26,9 +26,7 @@ module.exports = {
       isPublic: {
         type: Sequelize.BOOLEAN
       },
-    }, {
-      timestamps: false,
-    },);
+    });
   },
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('diaries');
