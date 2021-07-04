@@ -20,7 +20,7 @@ module.exports = {
     }
   },
   renewAccessToken: (req) => {
-    const authorization = req.headers["authorizaion"];
+    const authorization = req.cookies.refreshToken;
     if (!authorization) {
       return null;
     }

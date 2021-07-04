@@ -48,7 +48,8 @@ module.exports = {
           defaults: {
             nickname: "naver_" + naverData.nickname,
             password: naverToken,
-            picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
+            picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg",
+            isSocialLogin: true
           }
         })
 

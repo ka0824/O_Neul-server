@@ -1,18 +1,50 @@
-import { user } from "../../models/index"
+import "dotenv/config"
+import { user, diary, music, genre, emphathy } from "../../models/index"
 import { makeAccessToken,makeRefreshToken, isAuthorized, renewAccessToken } from "../token/token"
 import bcrypt from "bcrypt";
 
 module.exports = {
   signIn: async(req, res) => {
-   
     const { email, password } = req.body
-    try {
-      const isValid = await user.findOne({ where: { email, password } });
+    try { 
+      const isValid = await user.findOne({ where: { email } });
       if (!isValid) {
-        res.status(401).send({ message: "invalid email or password!"})
+        res.status(401).send({ message: "invalid email!"})
+      } else if (bcrypt.compareSync(password, isValid.dataValues.password) === false) {
+        res.status(401).send({ message: "password error!" })
       } else {
         const allData = isValid.dataValues;
-        const { id, password, createdAt, updatedAt, ...someData } = allData
+        const { password, ...someData } = allData;
+
+        const myDiary = await diary.findAll({
+          attributes: { exclude: ["musicId", "userId"] },
+          include: [
+            {
+              model: user,
+              attributes: ["id", "nickname"]
+            },
+            {
+              model: music,
+              attributes: { exclude: ["genreId"] },
+              include: {
+                model: genre,
+                attributes: [["genre", "genre_name"]],
+              }
+            },
+            {
+              model: emphathy,
+              attributes: ["id"],
+              required: false,
+              include: {
+                model: user,
+                attributes: ["id", "nickname"]
+              }
+            }
+          ],
+          where: {
+            userId: someData.id
+          }
+        });
 
         const accessToken = makeAccessToken(someData);
         const refreshToken = makeRefreshToken(someData);
@@ -20,7 +52,7 @@ module.exports = {
         res.cookie("refreshToken", refreshToken, { httpOnly: true });
          
         res.status(200).send({
-          data: { ...someData, accessToken },
+          data: { user: someData, accessToken, myDiary },
           message: "signIn success!"
         })
       }
@@ -38,14 +70,16 @@ module.exports = {
       } else if (isExistedNickname) {
         res.status(409).send({ message: "nickname already existed!"});
       } else {
+        const hashedPassword = await bcrypt.hashSync(password, parseInt(process.env.SALT_ROUNDS));
         const data = await user.create({
           email,
-          password,
+          password: hashedPassword,
           nickname,
-          picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
+          picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg",
+          isSocialLogin: false          
         }).then(res => { return res.dataValues });
        
-        ['id', 'password', 'createdAt', 'updatedAt'].map(field => { delete data[field] });
+        ['password'].map(field => { delete data[field] });
         
         res.status(201).send({ data: { user: data }, message: "signUp success!" });
       }
@@ -54,26 +88,48 @@ module.exports = {
     }
   },
   edit: async(req, res) => {
-    const decodedToken = isAuthorized(req);
+    const decodedToken = await isAuthorized(req);
     const { password, nickname } = req.body;
+    
     try {
-      const isExisted = await user.findOne({ where: { nickname: nickname } });
-      
-      if (!isExisted) {
-        await user.update({ password, nickname}, {
-          where: { email: decodedToken.email }
-        });
-        res.status(201).send({ message: "edit userInfo success!" });
+      if (!decodedToken) {
+        res.status(401).send( {message: "You have to signIn" });
       } else {
-        if (isExisted.dataValues.email !== decodedToken.email) {
-          res.status(409).send({ message: "nickname already existed"})
+        const isExisted = await user.findOne({ where: { nickname: nickname} });
+        const hashedPassword = bcrypt.hashSync(password, parseInt(process.env.SALT_ROUNDS));
+
+        if (!isExisted) {
+          await user.update({ password: hashedPassword, nickname }, {where: { id: decodedToken.id }});
+          const updatedInfo = { ...decodedToken, password: hashedPassword, nickname }
+          const { iat, exp, password, ...filteredInfo } = updatedInfo; 
+          console.log(filteredInfo);
+
+          const accessToken = makeAccessToken(filteredInfo);
+          const refreshToken = makeRefreshToken(filteredInfo);
+
+          res.cookie("refreshToken", refreshToken, { httpOnly: true });
+         
+          res.status(200).send({
+            data: { user: {...filteredInfo}, accessToken },
+            message: "edit userInfo success!"
+          });
         } else {
-          await user.update({ password, nickname}, {
-            where: { email: decodedToken.email }
-            });
-          res.status(201).send({ 
-            data: { user: { nickname: nickname } },
-            message: "edit userInfo success!" 
+          if(isExisted.dataValues.email !== decodedToken.email) {
+            res.status(409).send({ message: "nickname alredy existed!"})
+          }
+          await user.update({ password: hashedPassword, nickname }, {where: { id: decodedToken.id }});
+          const updatedInfo = { ...decodedToken, password: hashedPassword, nickname }
+          const { iat, exp, password, ...filteredInfo } = updatedInfo; 
+          console.log(filteredInfo);
+
+          const accessToken = makeAccessToken(filteredInfo);
+          const refreshToken = makeRefreshToken(filteredInfo);
+
+          res.cookie("refreshToken", refreshToken, { httpOnly: true });
+         
+          res.status(200).send({
+            data: { user: {...filteredInfo}, accessToken },
+            message: "edit userInfo success!"
           });
         }
       }     
@@ -81,27 +137,28 @@ module.exports = {
       res.status(500).send({ message: "sever error!"})
     }
   },
-  renew: async (req, res) => {
+  renewToken: async (req, res) => {
     try {
       const isValidRefreshToken = renewAccessToken(req);
+      
       if (isValidRefreshToken === null) {
         res.status(401).send({ message: "You have to login" })
       } else {
-        const data = {
-          email: isValidRefreshToken.email,
-          nickname: isValidRefreshToken.nickname,
-          picture: isValidRefreshToken.picture
-        }
-        const accessToken = makeAccessToken(data);
+        
+        const data = { ...isValidRefreshToken };
+        const { iat, exp, ...filteredData } = data
+        const accessToken = makeAccessToken(filteredData);
+        console.log(filteredData);
 
         res.status(200).send({
-          data: {accessToken}, 
+          data: { user: { ...filteredData }, accessToken}, 
           message: "get new access token success!"
-        })
+        });
       }      
     } catch (error) {
       res.status(500).send( { message: "server error!" })
     }
+  
   },
   getUserInfo: async (req, res) => {
     try {
@@ -109,16 +166,63 @@ module.exports = {
       if (!decodedToken) {
         res.status(401).send( {message: "You have to signIn" });
       } else {
+
+        const myDiary = await diary.findAll({
+          attributes: { exclude: ["musicId", "userId"] },
+          include: [
+            {
+              model: user,
+              attributes: ["id", "nickname"]
+            },
+            {
+              model: music,
+              attributes: { exclude: ["genreId"] },
+              include: {
+                model: genre,
+                attributes: [["genre", "genre_name"]],
+              }
+            },
+            {
+              model: emphathy,
+              attributes: ["id"],
+              required: false,
+              include: {
+                model: user,
+                attributes: ["id", "nickname"]
+              }
+            }
+          ],
+          where: {
+            userId: decodedToken.id
+          }
+        });
+
+        const { exp, iat, ...someData } = decodedToken;
+
         res.status(200).send( {
           data: {
             user: {
-              email: decodedToken.email,
-              nickname: decodedToken.nickname,
-              picture: decodedToken.picture
-            }            
+              ...someData
+            },
+            myDiary           
           },
           message: "getUserInfo success!"
         })
+      }
+    } catch (error) {
+      res.status(500).send( { message: "server error!" })
+    }
+  },
+  signOut: async (req, res) => {
+    try {
+      const isValidRefreshToken = renewAccessToken(req);
+      
+      if (isValidRefreshToken === null) {
+        res.status(401).send({ message: "You have to login" })
+      } else {
+        
+        res.status(205).clearCookie('refreshToken').send("logout success!")
+        
       }
     } catch (error) {
       res.status(500).send( { message: "server error!" })

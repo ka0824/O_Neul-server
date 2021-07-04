@@ -4,18 +4,17 @@ import { isAuthorized } from "../token/token"
 module.exports = {
   add: async(req, res) => {
     const decodedToken = isAuthorized(req);  
-    const diaryId = req.query.postId;
-    
+    const diaryId = req.query.diaryId;
     try {
       await emphathy.create({
         userId: decodedToken.id,
-        diaryId: diaryId,
-        diary_id: diaryId
+        diaryId: diaryId
       })
-
       res.status(201).send({
         data: {
-          dairyId: diaryId,
+          dairy: {
+            id: diaryId
+          }
         },
         message: "add emphathy success!"
       })
@@ -25,7 +24,7 @@ module.exports = {
   },
   delete: async(req, res) => {
     const decodedToken = isAuthorized(req);  
-    const diaryId = req.query.postId;
+    const diaryId = req.query.diaryId;
     
     try {
       await emphathy.destroy({
@@ -36,7 +35,9 @@ module.exports = {
       })
       res.status(200).send({
         data: {
-          diaryId: diaryId
+          data: {
+            id: diaryId
+          }
         },
         message: "delete emphathy success!"
       })

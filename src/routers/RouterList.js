@@ -1,15 +1,15 @@
-import diarysRouter from "./diarysRouter"
+import mainRouter from "./mainRouter"
 import emphathyRouter from "./emphathyRouter";
 import musicRouter from "./musicRouter";
 import oauthRouter from "./oauthRouter";
-import postRouter from "./postRouter";
+import diaryRouter from "./diaryRouter";
 import userRouter from "./userRouter";
 
 module.exports ={
-  diarysRouter,
+  mainRouter,
   emphathyRouter,
   musicRouter,
   oauthRouter,
-  postRouter,
+  diaryRouter,
   userRouter
 }

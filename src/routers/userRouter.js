@@ -6,7 +6,8 @@ const userRouter = express.Router();
 userRouter.post("/signin", userController.signIn);
 userRouter.post("/signUp", userController.signUp);
 userRouter.patch("/edit", userController.edit);
-userRouter.get("/renew", userController.renew)
-userRouter.post("/getUserInfo", userController.getUserInfo)
+userRouter.get("/signOut", userController.signOut);
+userRouter.get("/renewToken", userController.renewToken)
+userRouter.get("/getuserInfo", userController.getUserInfo)
 
 export default userRouter;

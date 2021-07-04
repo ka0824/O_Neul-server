@@ -20,8 +20,12 @@ module.exports = {
       picture: {
         type: Sequelize.STRING
       },
+      isSocialLogin: {
+        type: Sequelize.BOOLEAN
+      }
+    }, {
+      timestamps: false,
     });
-    
   },
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('users');
