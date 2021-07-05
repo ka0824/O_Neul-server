@@ -22,8 +22,8 @@ module.exports = {
 
         res.cookie("refreshToken", refreshToken, { 
           httpOnly: true,
-          // sameSite: "none",
-          // secure: true
+          sameSite: "none",
+          secure: true
         });
          
         res.status(200).send({
@@ -84,8 +84,8 @@ module.exports = {
 
           res.cookie("refreshToken", refreshToken, { 
             httpOnly: true,
-            // sameSite: "none",
-            // secure: true
+            sameSite: "none",
+            secure: true
           });
          
           res.status(200).send({
@@ -106,8 +106,8 @@ module.exports = {
 
             res.cookie("refreshToken", refreshToken, { 
               httpOnly: true,
-              // sameSite: "none",
-              // secure: true
+              sameSite: "none",
+              secure: true
             });
          
             res.status(200).send({
@@ -204,8 +204,8 @@ module.exports = {
       
       res.cookie("refreshToken", refreshToken, { 
         httpOnly: true,
-        // sameSite: "none",
-        // secure: true
+        sameSite: "none",
+        secure: true
       });
          
       res.status(200).send({
