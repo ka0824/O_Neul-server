@@ -9,7 +9,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://oneul.site"],
+    origin: ["http://localhost:3000", "https://oneul.site", "https://localhost:3000"],
     credentials: true,
     method: ["GET", "POST", "DELETE", "PATCH"]
   })
@@ -40,6 +40,5 @@ app.use("/main", RouterList.mainRouter);
 app.use("/user", RouterList.userRouter);
 app.use("/emphathy", RouterList.emphathyRouter);
 app.use("/diary", RouterList.diaryRouter);
-app.use("/music", RouterList.musicRouter);
 
 export default app;

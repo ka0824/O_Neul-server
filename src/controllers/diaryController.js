@@ -1,5 +1,5 @@
-import { async } from "regenerator-runtime";
 import { diary, user, music, emphathy, genre } from "../../models/index"; 
+import { findUser, findDiary, findMusic } from "../util/sequelizeFuncs"
 import { isAuthorized } from "../token/token"
 
 module.exports = {
@@ -9,23 +9,10 @@ module.exports = {
       if (!decodedToken) {
         res.status(401).send( {message: "You have to signIn" });
       } else { 
-        const { musicName, isPublic, date, feeling, weather, image, text } = req.body;
-        const userIdData = await user.findOne({
-          where: {
-            nickname: decodedToken.nickname
-          }
-        }).then(res => {return res.dataValues});
-     
-        const musicIdData = await music.findOne({
-          where: {
-            name: musicName
-          },
-          include: {
-            model: genre,
-            attributes: [["genre", "genre_name"]]
-          },
-          attributes: { exclude: ["genreId"] }
-        }).then(res => {return res.dataValues});
+        const { music, isPublic, date, feeling, weather, image, text } = req.body;
+        
+        const userInfo = await findUser(decodedToken.id);
+        const musicInfo = await findMusic(music);
 
         const postedDiary = await diary.create({
           date: date,
@@ -34,9 +21,11 @@ module.exports = {
           image: image,
           text: text,
           isPublic: isPublic,
-          userId: decodedToken.id,
-          musicId: musicIdData.id
+          userId: userInfo.id,
+          musicId: musicInfo.id
         }).then(res => {return res.dataValues});
+
+        console.log(postedDiary);
 
         res.status(201).send({
           data: {
@@ -44,11 +33,11 @@ module.exports = {
             userId: undefined,
             musicId: undefined,
             user: {
-            id: userIdData.id,
-            nickname: userIdData.nickname
+              id: userInfo.id,
+              nickname: userInfo.nickname
             },
             music: {
-              ...musicIdData
+              ...musicInfo
             },
             emphathy: []
             },
@@ -85,19 +74,10 @@ module.exports = {
       const decodedToken = isAuthorized(req);
       const diaryId = req.query.diaryId
 
-      const { musicName, isPublic, date, feeling, weather, image, text } = req.body;
+      const { music, isPublic, date, feeling, weather, image, text } = req.body;
 
-      const userIdData = await user.findOne({
-        where: {
-          nickname: decodedToken.nickname
-        }
-      }).then(res => { return res.dataValues });
-    
-      const musicIdData = await music.findOne({
-        where: {
-          name: musicName
-        }
-      }).then(res => { return res.dataValues });
+      const userInfo = findUser(decodedToken.id)
+      const musicInfo = findMusic(music);
       
       await diary.update(
         {
@@ -107,40 +87,13 @@ module.exports = {
           image: image,
           text: text,
           isPublic: isPublic,
-          userId: userIdData.id,
-          musicId: musicIdData.id
+          userId: userInfo.id,
+          musicId: musicInfo.id
         },
         { where: { id: diaryId }}
       );
       
-      const updatedDiary = await diary.findOne({
-        where: { id: diaryId },
-        include: [
-          {
-            model: user,
-            attributes: ["id", "nickname"]
-          },
-          {
-            model: music,
-            attributes: { exclude: ["genreId"]},
-            include: {
-              model: genre,
-              attributes: [["genre", "genre_name"]]
-            }
-          },
-          {
-            model: emphathy,
-            attributes: ['id'],
-            required: false,
-            include: {
-              model: user,
-              required: true,
-              attributes: ['nickname']
-           }
-          }
-        ],
-        attributes: { exclude: ["userId", "musicId"] }
-      }).then(res => {return res.dataValues});
+      const updatedDiary = await findDiary(diaryId);
 
       res.status(201).send({
         data: {...updatedDiary},
@@ -155,35 +108,7 @@ module.exports = {
     try {
       const diaryId = req.query.diaryId;
 
-      const selectedDiary = await diary.findOne({
-        where: { id: diaryId },
-        include: [
-          {
-            model: user,
-            attributes: ["id", "nickname"]
-          },
-          {
-            model: music,
-            attributes: { exclude: ["genreId"]},
-            include: {
-              model: genre,
-              attributes: [["genre", "genre_name"]]
-            }
-          },
-          {
-            model: emphathy,
-            attributes: ['id'],
-            required: false,
-            include: {
-              model: user,
-              required: true,
-              attributes: ['nickname']
-            }
-          }
-        ],
-        attributes: { exclude: ["userId", "musicId"] }
-      }).then(res => {return res.dataValues});
-
+      const selectedDiary = await findDiary(diaryId);
       res.status(200).send({
         data: {
           diary: {...selectedDiary}

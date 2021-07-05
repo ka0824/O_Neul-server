@@ -1,174 +1,124 @@
 import "dotenv/config"
-import axios from "axios";
 import { user } from "../../models/index"
 import { makeAccessToken, makeRefreshToken } from "../token/token"
+import { makeSocialUrl, getSocialInfo } from "../util/oauthFuncs"
+import bcrypt from "bcrypt";
 
 module.exports = {
   getCode: async (req, res) => {
     const { siteName } = req. body
     try {
-      if(siteName === "naver") {
-        const state = "naver";
-        const naverLoginUrl = 'https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=' + process.env.NAVER_CLIENTID + '&redirect_uri=' + process.env.REDIRECTURL + '&state=' + state;
-        res.send(naverLoginUrl);
-
-      } else if (siteName === "kakao") {
-        const state = "kakao";
-        const kakaoLoginUrl = 'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=' + process.env.KAKAO_RESTAPI + '&redirect_uri=' + process.env.REDIRECTURL + '&state=' + state;
-        res.send(kakaoLoginUrl);
-
-      } else if (siteName === "google") {
-        const state = "google";
-        const googleLoginurl = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=' + process.env.GOOGLE_CLIENTID + '&redirect_uri=' + process.env.REDIRECTURL + '&state=' + state + '&scope=email%20profile'
-        res.send(googleLoginurl);
-      }
+      const socialUrl = makeSocialUrl(siteName);
+      res.status(200).send(socialUrl);
     } catch (err) {
       res.status(500).send({ message: "server error!" })
     }
-    
   },
   login: async (req, res) => {
     try {
       const { code, state } = req.body;
+      const socialInfo = getSocialInfo(code, state);
+      const randomPassword = Math.random().toString(36).slice(2);
+      const hashedPassword = await bcrypt.hashSync(randomPassword, parseInt(process.env.SALT_ROUNDS));
+     
       if (state === "naver") {
-        const naverTokenUrl = ('https://nid.naver.com/oauth2.0/token?grant_type=authorization_code&client_id='
-         + process.env.NAVER_CLIENTID + '&client_secret=' + process.env.NAVER_SECRET + '&redirect_uri=' + process.env.REDIRECTURL + '&code=' + code + '&state=' + state)
-        const naverToken = await axios.get(naverTokenUrl)
-          .then(res => {return res.data.access_token})
-
-        const header = "Bearer " + naverToken;
-        const naverData = await axios.get("https://openapi.naver.com/v1/nid/me",
-         {headers: {'Authorization': header}})
-          .then((res) => {return {email: res.data.response.email, nickname: res.data.response.nickname}})
-      
-        await user.findOrCreate({
+        
+        const userInfo = await user.findOrCreate({
           where: {
-            email: naverData.email
+            email: socialInfo.email
           },
           defaults: {
-            nickname: "naver_" + naverData.nickname,
-            password: naverToken,
+            nickname: "naver_" + socialInfo.nickname,
+            password: hashedPassword,
             picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg",
             isSocialLogin: true
           }
-        })
+        }).then(data => {return data.dataValues});
 
-        const data = {
-          email: naverData.email,
-          nickname: "naver_" + naverData.nickname,
-          picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
-        }
-      
-        const accessToken = makeAccessToken(data);
-        const refreshToken = makeRefreshToken(data);
+        delete userInfo.password;
+        
+        const accessToken = makeAccessToken(userInfo);
+        const refreshToken = makeRefreshToken(userInfo);
 
-        res.status(200).setHeader("authorization", refreshToken).send({
-          data: { 
-            user: {
-              nickname: data.email,
-              picture: data.picture
-            }, 
-            accessToken: accessToken
-          },
+        res.cookie("refreshToken", refreshToken, { 
+          httpOnly: true,
+          sameSite: "none",
+          secure: true
+        });
+         
+        res.status(200).send({
+          data: { user: userInfo, accessToken },
           message: "Oauth login success!"
         })
+
       } else if (state === "kakao") {
         
-        const kakaoTokenUrl = 'https://kauth.kakao.com/oauth/token?grant_type=authorization_code&client_id=' + process.env.KAKAO_RESTAPI + '&redirect_uri=' + process.env.REDIRECTURL + '&code=' + code;
-        
-        const kakaoToken = await axios.get(kakaoTokenUrl)
-          .then(res => {return res.data.access_token})
-        
-        const header = "Bearer " + kakaoToken;
-        
-        const kakaoData = await axios.get("https://kapi.kakao.com/v2/user/me",
-         {headers: {'Authorization': header}})
-          .then((res) => {return res.data.kakao_account.profile.nickname})
-        
-          await user.findOrCreate({
-            where: {
-              nickname: "kakao_" + kakaoData
-            },
-            defaults: {
-              email: "kakaoLogin",
-              password: kakaoToken,
-              picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
+        const userInfo = await user.findOrCreate({
+          where: {
+            email: "kakao_" + socialInfo
+          },
+          defaults: {
+            nickname: "kakao_" + socialInfo,
+            password: hashedPassword,
+            picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg",
+            isSocialLogin: true
             }
-          })
+        })
   
-          const data = {
-            email: "kakaoLogin",
-            nickname: "kakao_" + kakaoData,
-            picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
-          }
-          const accessToken = makeAccessToken(data);
-          const refreshToken = makeRefreshToken(data);
-  
-          res.status(200).setHeader("authorization", refreshToken).send({
-            data: { 
-              user: {
-                nickname: data.nickname,
-                picture: data.picture
-              }, 
-              accessToken: accessToken
-              },
-            message: "Oauth login success!"
-        
-            })} else {
-              
-              const googleTokenUrl = 'https://accounts.google.com/o/oauth2/token?grant_type=authorization_code&client_id=' + process.env.GOOGLE_CLIENTID + '&redirect_uri=' + process.env.REDIRECTURL + '&client_secret=' + process.env.GOOGLE_SECRET + '&code=' + code;
-              const googleToken = await axios.post(googleTokenUrl)
-                .then(res => {return res.data});
-              
-              const header = "Bearer " + googleToken.access_token; 
- 
-              const googleData = await axios.get("https://oauth2.googleapis.com/tokeninfo",
-                {
-                  params: { id_token: googleToken.id_token },
-                  headers: {'Authorization': header}
-                })
-                  .then(res => {return res.data.email});
-              
-                  
-              const newGoogleUser = await user.findOrCreate({
-                where: {
-                  email: googleData
-                },
-                defaults: {
-                  nickname: null,
-                  password: googleToken.access_token,
-                  picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
-                }
-              })
+        delete userInfo.password;
 
-              await user.update({
-                nickname: "google_" + newGoogleUser[0].dataValues.id
-              }, {
-                where: {
-                  email: googleData
-                }
-              })
- 
-              const data = {
-                email: googleData,
-                nickname: "google_" + newGoogleUser[0].dataValues.id,
-                picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg"
-              }
-            
-              const accessToken = makeAccessToken(data);
-              const refreshToken = makeRefreshToken(data);
-              
-              res.status(200).setHeader("authorization", refreshToken).send({
-                data: {
-                  user: {
-                    nickname: data.nickname,
-                    picture: data.picture
-                  },
-                  accessToken: accessToken
-                },
-                message: "Oauth login success!"
-              }); 
+        const accessToken = makeAccessToken(userInfo);
+        const refreshToken = makeRefreshToken(userInfo);
+  
+        res.cookie("refreshToken", refreshToken, { 
+          httpOnly: true,
+          sameSite: "none",
+          secure: true
+        });
+         
+        res.status(200).send({
+          data: { user: userInfo, accessToken },
+          message: "Oauth login success!"
+        });
+
+        } else {
+               
+        const userInfo = await user.findOrCreate({
+          where: {
+           email: socialInfo
+          },
+          defaults: {
+            nickname: null,
+            password: hashedPassword,
+            picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg",
+            isSocialLogin: true
             }
+          });
+
+        await user.update({
+          nickname: "google_" + newGoogleUser[0].dataValues.id
+          }, {
+            where: {
+              email: googleData
+            }
+        })
+ 
+        userInfo.nickname = "google_" + newGoogleUser[0].dataValues.id;
+            
+        const accessToken = makeAccessToken(userInfo);
+        const refreshToken = makeRefreshToken(userInfo);
+              
+        res.cookie("refreshToken", refreshToken, { 
+          httpOnly: true,
+          sameSite: "none",
+          secure: true
+        });
+         
+        res.status(200).send({
+          data: { user: userInfo, accessToken },
+          message: "Oauth login success!"
+        });
+      }
     } catch (error) {
       res.status(500).send({ message: "server error!"})
     }
