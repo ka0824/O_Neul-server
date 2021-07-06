@@ -184,7 +184,13 @@ module.exports = {
         res.status(401).send({ message: "You have to login" })
       } else {
         
-        res.status(205).clearCookie('refreshToken').send({ message: "logout success!"})
+        res.cookie("refreshToken", refreshToken, { 
+          httpOnly: true,
+          sameSite: "none",
+          secure: true
+        });
+
+        res.status(200).send({ message: "logout success!" })
         
       }
     } catch (error) {
