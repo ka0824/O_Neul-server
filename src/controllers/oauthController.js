@@ -23,101 +23,158 @@ module.exports = {
      
       if (state === "naver") {
         
-        const userInfo = await user.findOrCreate({
-          where: {
-            email: socialInfo.email
-          },
-          defaults: {
+        const isValid = await user.findOne({
+          where: {email: socialInfo.email}
+        });
+
+        if(!isValid) {
+          const userInfo = await user.create({
+            email: socialInfo.email,
             nickname: "naver_" + socialInfo.nickname,
             password: hashedPassword,
             picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg",
             isSocialLogin: true
-          }
-        }).then(data => {return data.dataValues});
-
-        delete userInfo.password;
+          }).then(res => {return res.dataValues})
+           
+          delete userInfo.password;
         
-        const accessToken = makeAccessToken(userInfo);
-        const refreshToken = makeRefreshToken(userInfo);
-
-        res.cookie("refreshToken", refreshToken, { 
-          httpOnly: true,
-          sameSite: "none",
-          secure: true
-        });
+          const accessToken = makeAccessToken(userInfo);
+          const refreshToken = makeRefreshToken(userInfo);
+          
+          res.cookie("refreshToken", refreshToken, { 
+            httpOnly: true,
+            sameSite: "none",
+            secure: true
+          });
          
-        res.status(200).send({
-          data: { user: userInfo, accessToken },
-          message: "Oauth login success!"
-        })
+          res.status(200).send({
+            data: { user: userInfo, accessToken },
+            message: "Oauth login success!"
+          })
+        } else {
+          const userInfo = isValid.dataValue;
+
+          delete userInfo.password;
+        
+          const accessToken = makeAccessToken(userInfo);
+          const refreshToken = makeRefreshToken(userInfo);
+          
+          res.cookie("refreshToken", refreshToken, { 
+            httpOnly: true,
+            sameSite: "none",
+            secure: true
+          });
+          res.status(200).send({
+            data: { user: userInfo, accessToken },
+            message: "Oauth login success!"
+          })
+
+        }
 
       } else if (state === "kakao") {
-        
-        const userInfo = await user.findOrCreate({
-          where: {
-            email: "kakao_" + socialInfo
-          },
-          defaults: {
+        const isValid = await user.findOne({
+          where: {email: "kakao_" + socialInfo}
+        });
+
+        if(!isValid) {
+          const userInfo = await user.create({
+            email: "kakao_" + socialInfo,
             nickname: "kakao_" + socialInfo,
             password: hashedPassword,
             picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg",
             isSocialLogin: true
-            }
-        })
+          })
   
-        delete userInfo.password;
+          delete userInfo.password;
 
-        const accessToken = makeAccessToken(userInfo);
-        const refreshToken = makeRefreshToken(userInfo);
+          const accessToken = makeAccessToken(userInfo);
+          const refreshToken = makeRefreshToken(userInfo);
   
-        res.cookie("refreshToken", refreshToken, { 
-          httpOnly: true,
-          sameSite: "none",
-          secure: true
-        });
+          res.cookie("refreshToken", refreshToken, { 
+            httpOnly: true,
+            sameSite: "none",
+            secure: true
+          });
          
-        res.status(200).send({
-          data: { user: userInfo, accessToken },
-          message: "Oauth login success!"
-        });
-
+          res.status(200).send({
+            data: { user: userInfo, accessToken },
+            message: "Oauth login success!"
+          });
         } else {
-               
-        const userInfo = await user.findOrCreate({
-          where: {
-           email: socialInfo
-          },
-          defaults: {
-            nickname: null,
-            password: hashedPassword,
-            picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg",
-            isSocialLogin: true
-            }
+          const userInfo = isValid.dataValues;
+
+          delete userInfo.password;
+        
+          const accessToken = makeAccessToken(userInfo);
+          const refreshToken = makeRefreshToken(userInfo);
+          
+          res.cookie("refreshToken", refreshToken, { 
+            httpOnly: true,
+            sameSite: "none",
+            secure: true
+          });
+          res.status(200).send({
+            data: { user: userInfo, accessToken },
+            message: "Oauth login success!"
+          })
+        }
+
+        } else if (state === "google") {
+          const isValid = await user.findOne({
+            where: {email: socialInfo}
           });
 
-        await user.update({
-          nickname: "google_" + newGoogleUser[0].dataValues.id
-          }, {
-            where: {
-              email: googleData
-            }
-        })
+          if(!isValid) {
+            const userInfo = await user.create({
+              email: socialInfo,
+              nickname: null,
+              password: hashedPassword,
+              picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg",
+              isSocialLogin: true
+            });
+            await user.update({
+              nickname: "google_" + newGoogleUser[0].dataValues.id
+              }, {
+                where: {
+                  email: googleData
+                }
+            })
  
-        userInfo.nickname = "google_" + newGoogleUser[0].dataValues.id;
+            userInfo.nickname = "google_" + newGoogleUser[0].dataValues.id;
             
-        const accessToken = makeAccessToken(userInfo);
-        const refreshToken = makeRefreshToken(userInfo);
+            const accessToken = makeAccessToken(userInfo);
+            const refreshToken = makeRefreshToken(userInfo);
               
-        res.cookie("refreshToken", refreshToken, { 
-          httpOnly: true,
-          sameSite: "none",
-          secure: true
-        });
+            res.cookie("refreshToken", refreshToken, { 
+              httpOnly: true,
+              sameSite: "none",
+              secure: true
+            });
          
-        res.status(200).send({
-          data: { user: userInfo, accessToken },
-          message: "Oauth login success!"
-        });
+            res.status(200).send({
+              data: { user: userInfo, accessToken },
+              message: "Oauth login success!"
+            });
+
+          } else {
+          const userInfo = isValid.dataValue;
+
+          delete userInfo.password;
+        
+          const accessToken = makeAccessToken(userInfo);
+          const refreshToken = makeRefreshToken(userInfo);
+          
+          res.cookie("refreshToken", refreshToken, { 
+            httpOnly: true,
+            sameSite: "none",
+            secure: true
+          });
+          res.status(200).send({
+            data: { user: userInfo, accessToken },
+            message: "Oauth login success!"
+          })
+          }
+             
       }
     } catch (error) {
       res.status(500).send({ message: "server error!"})
