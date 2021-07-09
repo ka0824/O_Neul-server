@@ -21,7 +21,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       text: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(65535)
       },
       isPublic: {
         type: Sequelize.BOOLEAN

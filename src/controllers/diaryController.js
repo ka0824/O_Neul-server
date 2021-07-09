@@ -9,10 +9,10 @@ module.exports = {
       if (!decodedToken) {
         res.status(401).send( {message: "You have to signIn" });
       } else { 
-        const { music, isPublic, date, feeling, weather, image, text } = req.body;
+        const { musicId, isPublic, date, feeling, weather, image, text } = req.body;
         
         const userInfo = await findUser(decodedToken.id);
-        const musicInfo = await findMusic(music);
+        const musicInfo = await findMusic(musicId);
 
         const postedDiary = await diary.create({
           date: date,
@@ -74,10 +74,10 @@ module.exports = {
       const decodedToken = isAuthorized(req);
       const diaryId = req.query.diaryId
 
-      const { music, isPublic, date, feeling, weather, image, text } = req.body;
+      const { musicId, isPublic, date, feeling, weather, image, text } = req.body;
 
       const userInfo = findUser(decodedToken.id)
-      const musicInfo = findMusic(music);
+      const musicInfo = findMusic(musicId);
       
       await diary.update(
         {

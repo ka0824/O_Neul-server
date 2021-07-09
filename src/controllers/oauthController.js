@@ -17,7 +17,7 @@ module.exports = {
   login: async (req, res) => {
     try {
       const { code, state } = req.body;
-      const socialInfo = getSocialInfo(code, state);
+      const socialInfo = await getSocialInfo(code, state);
       const randomPassword = Math.random().toString(36).slice(2);
       const hashedPassword = await bcrypt.hashSync(randomPassword, parseInt(process.env.SALT_ROUNDS));
      
@@ -26,7 +26,6 @@ module.exports = {
         const isValid = await user.findOne({
           where: {email: socialInfo.email}
         });
-
         if(!isValid) {
           const userInfo = await user.create({
             email: socialInfo.email,
@@ -52,7 +51,7 @@ module.exports = {
             message: "Oauth login success!"
           })
         } else {
-          const userInfo = isValid.dataValue;
+          const userInfo = isValid.dataValues;
 
           delete userInfo.password;
         
@@ -157,7 +156,7 @@ module.exports = {
             });
 
           } else {
-          const userInfo = isValid.dataValue;
+          const userInfo = isValid.dataValues;
 
           delete userInfo.password;
         
