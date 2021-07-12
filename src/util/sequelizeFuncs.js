@@ -23,7 +23,7 @@ module.exports = {
       include: [
         {
           model: user,
-          attributes: ["id", "nickname"]
+          attributes: ["id", "nickname", "picture"]
         },
         {
           model: music,
@@ -35,6 +35,7 @@ module.exports = {
         },
         {
           model: emphathy,
+          as: "empahthies",
           attributes: ["id"],
           required: false,
           include: {
@@ -54,7 +55,7 @@ module.exports = {
       include: [
         {
           model: user,
-          attributes: ["id", "nickname"]
+          attributes: ["id", "nickname", "picture"]
         },
         {
           model: music,
@@ -66,6 +67,7 @@ module.exports = {
         },
         {
           model: emphathy,
+          as: "emphathies",
           attributes: ["id"],
           required: false,
           include: {
@@ -100,6 +102,7 @@ module.exports = {
           }, 
           {
             model: emphathy,
+            as: "emphathies",
             attributes: ["id"],
             required: false,
             include: {
@@ -117,7 +120,7 @@ module.exports = {
       include: [
         {
           model: user,
-          attributes: ['id' ,"nickname"],
+          attributes: ['id' ,"nickname", "picture"],
         },
         {
           model: music,
@@ -129,6 +132,7 @@ module.exports = {
         },
         {
           model: emphathy,
+          as: "emphathies",
           attributes: ['id'],
           required: false,
             include: {

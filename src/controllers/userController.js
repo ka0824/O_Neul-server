@@ -184,7 +184,7 @@ module.exports = {
         res.status(401).send({ message: "You have to login" })
       } else {
         
-        res.cookie("refreshToken", refreshToken, { 
+        res.cookie("refreshToken", "", { 
           httpOnly: true,
           sameSite: "none",
           secure: true

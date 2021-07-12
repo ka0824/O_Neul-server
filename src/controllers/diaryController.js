@@ -34,12 +34,13 @@ module.exports = {
             musicId: undefined,
             user: {
               id: userInfo.id,
-              nickname: userInfo.nickname
+              nickname: userInfo.nickname,
+              picture: userInfo.picture
             },
             music: {
               ...musicInfo
             },
-            emphathy: []
+            emphathies: []
             },
             message: "write diary success!"
           });
@@ -54,7 +55,7 @@ module.exports = {
       if (!decodedToken) {
         res.status(401).send( {message: "You have to signIn" });
       } else {
-        const diaryId = req.query.diaryId
+        const diaryId = req.body.diaryId
         await diary.destroy({
           where: {
             id: diaryId
@@ -72,9 +73,8 @@ module.exports = {
   edit: async(req, res) => {
     try {
       const decodedToken = isAuthorized(req);
-      const diaryId = req.query.diaryId
 
-      const { musicId, isPublic, date, feeling, weather, image, text } = req.body;
+      const {diaryId, musicId, isPublic, date, feeling, weather, image, text } = req.body;
 
       const userInfo = findUser(decodedToken.id)
       const musicInfo = findMusic(musicId);
