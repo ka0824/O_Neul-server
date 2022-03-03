@@ -35,7 +35,7 @@ module.exports = {
         },
         {
           model: emphathy,
-          as: "empahthies",
+          as: "emphathies",
           attributes: ["id"],
           required: false,
           include: {

@@ -75,20 +75,14 @@ module.exports = {
       const decodedToken = isAuthorized(req);
 
       const {diaryId, musicId, isPublic, date, feeling, weather, image, text } = req.body;
-
+      
       const userInfo = findUser(decodedToken.id)
       const musicInfo = findMusic(musicId);
       
       await diary.update(
         {
-          date: date,
-          feeling: feeling,
-          weather: weather,
-          image: image,
-          text: text,
-          isPublic: isPublic,
-          userId: userInfo.id,
-          musicId: musicInfo.id
+          ...req.body,
+          music: musicId
         },
         { where: { id: diaryId }}
       );

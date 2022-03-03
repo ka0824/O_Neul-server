@@ -11,7 +11,8 @@ module.exports = {
         const musicList = await findMusicList();
 
         res.status(200).send({
-          data: {
+          data: 
+          {
             publicDiary,
             musicList
           },
@@ -21,7 +22,8 @@ module.exports = {
         const publicDiary = await findPublicDiary();
         const myDiary = await findMyDiary(decodedToken.id);
         const musicList = await findMusicList();
-
+        
+        console.log("hi");
         res.status(200).send({
           data: {
             publicDiary,

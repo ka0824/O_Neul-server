@@ -11,7 +11,7 @@ app.use(
   cors({
     origin: ["http://localhost:3000", "https://oneul.site", "https://localhost:3000"],
     credentials: true,
-    method: ["GET", "POST", "DELETE", "PATCH"]
+    method: ["GET", "POST", "DELETE", "PATCH", "OPTIONS"]
   })
 )
 

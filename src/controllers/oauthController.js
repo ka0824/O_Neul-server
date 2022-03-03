@@ -124,22 +124,20 @@ module.exports = {
           });
 
           if(!isValid) {
-            const userInfo = await user.create({
+            const googleNickname = socialInfo.split("@")[0]
+           
+            await user.create({
               email: socialInfo,
-              nickname: null,
+              nickname: googleNickname,
               password: hashedPassword,
               picture: "https://oneulfile.s3.amazonaws.com/profile/default.jpeg",
               isSocialLogin: true
-            });
-            await user.update({
-              nickname: "google_" + newGoogleUser[0].dataValues.id
-              }, {
-                where: {
-                  email: googleData
-                }
             })
- 
-            userInfo.nickname = "google_" + newGoogleUser[0].dataValues.id;
+
+            const userInfo = await user.findOne({where: {email: socialInfo}})
+              .then(res => {return res.dataValues})            
+
+            delete userInfo.password
             
             const accessToken = makeAccessToken(userInfo);
             const refreshToken = makeRefreshToken(userInfo);
